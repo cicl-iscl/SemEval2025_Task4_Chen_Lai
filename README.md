@@ -18,6 +18,6 @@ SemEval 2025 [Homepage](https://semeval.github.io/SemEval2025/tasks)
 10.01.2025: informal presentation (meeting with all participants) <br>
 07.02.2025: final presentation (meeting with all participants) <br>
 
-We will start with the 
+We will start with the Task 4 as this the most interesting one. But as either of us are very good at machine learning, if we reached unsolvable bottleneck, we will change to task 9.
 
 
