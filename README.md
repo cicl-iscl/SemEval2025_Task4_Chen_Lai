@@ -1,6 +1,7 @@
 # Machine Unlearning
 
-SemEval 2025 [Homepage](https://semeval.github.io/SemEval2025/tasks)
+SemEval 2025 [Homepage](https://semeval.github.io/SemEval2025/tasks) <br>
+[Course page](https://github.com/cicl-iscl/cicl2024)
 
 ### Team member: Chi Kuan Lai, Yifei Chen <br>
 
@@ -22,7 +23,5 @@ We will start with the Task 4 as this the most interesting one. But as either of
 10.01.2025: informal presentation (meeting with all participants) <br>
 07.02.2025: final presentation (meeting with all participants) <br>
 
-#### Quick Access
-[Course page](https://github.com/cicl-iscl/cicl2024)
 
 
