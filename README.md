@@ -11,6 +11,10 @@ SemEval 2025 [Homepage](https://semeval.github.io/SemEval2025/tasks) <br>
 
 We will start with the Task 4 as we find this the most interesting. Yet if we reached unsolvable bottleneck, we will switch to task 9.
 
+### Paper Writing
+System description paper
+- Describe the methods
+
 
 ### Instructions
 
