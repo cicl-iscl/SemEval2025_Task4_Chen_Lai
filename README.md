@@ -9,7 +9,7 @@ SemEval 2025 [Homepage](https://semeval.github.io/SemEval2025/tasks) <br>
 [Task 4](https://llmunlearningsemeval2025.github.io/) Machine Unlearning <br>
 [Task 9](https://food-hazard-detection-semeval-2025.github.io/) Food Detection <br>
 
-We will start with the Task 4 as this the most interesting one. But as either of us are very good at machine learning, if we reached unsolvable bottleneck, we will change to task 9.
+We will start with the Task 4 as this the most interesting one to us. Yet if we reached unsolvable bottleneck, we will change to task 9.
 
 
 ### Instructions
