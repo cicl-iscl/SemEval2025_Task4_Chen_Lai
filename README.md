@@ -15,7 +15,7 @@ We will start with the Task 4 as we find this the most interesting. Yet if we re
 System description paper
 - Describe the methods
 
-### Inintial idea
+### Initial idea
 ### 1. Perform Gradient Ascent on forgetting set
 Gradient Ascent: to maximize a function
 - We negate the loss, changing the model's update direction to "increase loss".
