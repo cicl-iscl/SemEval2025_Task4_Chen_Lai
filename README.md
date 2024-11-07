@@ -29,6 +29,7 @@ The Kullback-Leibler Divergence score: quantifies how much one probability distr
 ### 3. Perform Gradient Descent on retaining set or RAG（Retrieval Augmented Generation)
 For Gradient Descent:
 - Train the model again with the retain set using Gradient Descent and minimize the loss in order to predict the correctly retained answer.
+  
 For RAG (Retrieval Augmented Generation):
 - It is an AI framework for improving the quality of LLM-generated responses by grounding the model on external sources of knowledge to supplement the LLM's internal representation of information.
 - The model retrieves the retained data set when the input is related to it.
