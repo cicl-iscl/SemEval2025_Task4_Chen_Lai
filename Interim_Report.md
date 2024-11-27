@@ -1,4 +1,4 @@
-# Interim Report
+# Interim Report 3011
 
 ## Task Overview
 This project addresses the challenge of **Machine Unlearning** in Large Language Models (LLMs). The focus is to ensure selective forgetting of specific data (Forget sets) while retaining critical information (Retain sets). This involves handling synthetic and real datasets for tasks like sentence completion and question-answering, and assessing unlearning strategies using comprehensive evaluation metrics.
