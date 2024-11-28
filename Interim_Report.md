@@ -27,9 +27,9 @@ Our implementation focuses on training a fine-tuned unlearning pipeline for LLMs
 
 ### Algorithms
 We implement an **iterative unlearning training loop** that balances:
-    - Minimise loss on Forget sets (unlearning data).
-    - Preserving high accuracy on Retain sets (critical information).
-    - Maintaing general knowledge and utility in the model, minise deviation from the original model.
+- Minimise loss on Forget sets (unlearning data).
+- Preserving high accuracy on Retain sets (critical information).
+- Maintaing general knowledge and utility in the model, minise deviation from the original model.
 
 
 ### Process Flow Summary
