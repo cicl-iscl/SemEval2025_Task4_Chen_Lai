@@ -81,15 +81,15 @@ def create_dataloader_from_parquet(tokenizer, parquet_file, batch_size=4, shuffl
     
     return dataloader
 
-def compute_kl(pretrained_model, current_model, batch, device="cuda"):
+def compute_kl(pretrained_model, current_model, batch, device):
     """
-    Compute forward Kullback–Leibler divergence as the normal utility loss.
+    Compute forward Kullback Leibler divergence as the normal utility loss.
 
     Args:
         pretrained_model: reference model which is the pretrained (original) model.
         current_model: The current unlearning model.
         batch: A batch of normal data.
-        device: GPU device.
+        device: device.
 
     Returns:
        The KL loss.
@@ -172,7 +172,7 @@ def get_retain_ans_loss(retain_set, tokenizer, model, device="cuda"):
     specific questions with their correct answers.
 
     Args:
-        retain_set: A batch of retaining data (contains pairs of questions and correct answers).
+        retain_set: A batch of retaining data (contains tokenized input IDs and labels).
         tokenizer: The tokenizer.
         model: Model undergoing training.
         device: GPU device.
@@ -180,11 +180,16 @@ def get_retain_ans_loss(retain_set, tokenizer, model, device="cuda"):
     Returns:
        The retain loss.
     """
+    # Move data to the appropriate device
     retain_input_ids = retain_set["input_ids"].to(device)
-    retain_ans_list = retain_set["output"]  # Assuming `output` contains the correct answers for each question.
+    retain_attention_mask = retain_set["attention_mask"].to(device)
+    retain_labels = retain_set["labels"].to(device)
+
+    # Decode and reconstruct the original retain samples
     batch_retain_features = []
 
     for batch_idx in range(retain_input_ids.shape[0]):
+        # Decode tokenized input to reconstruct the input-output text
         single_input_id = retain_input_ids[batch_idx, :]
         ori_text = tokenizer.decode(single_input_id, skip_special_tokens=True)
 
@@ -192,28 +197,18 @@ def get_retain_ans_loss(retain_set, tokenizer, model, device="cuda"):
         question = ori_text.split("###")[1].split("Input:")[-1].strip()
         question_prefix = f"### Input: {question}\n ### Output: "
 
-        # Correct answer from retain set
-        correct_ans = retain_ans_list[batch_idx]
-
-        # Create a single retain sample
-        retain_sample = f"{question_prefix}{correct_ans}"
-
-        # Tokenize the retain sample, applying padding and truncation consistently
-        tokenized_retain_sample = tokenizer(
-            retain_sample,
-            truncation=True,
-            padding="max_length",  # Pad to the maximum length
-            max_length=512,  # Explicitly set maximum length
-            return_tensors="pt"
-        )
+        # Tokenize the correct answer from the original labels
+        tokenized_retain_sample = {
+            "input_ids": retain_labels[batch_idx],
+            "attention_mask": retain_attention_mask[batch_idx]
+        }
 
         batch_retain_features.append(
             {
-                "input_ids": tokenized_retain_sample["input_ids"].squeeze(),
-                "attention_mask": tokenized_retain_sample["attention_mask"].squeeze(),
-                "start_locs": len(tokenizer(question_prefix, truncation=True, padding="max_length", return_tensors="pt")["input_ids"].squeeze()),
-                # Include labels with padding and truncation applied
-                "labels": tokenized_retain_sample["input_ids"].squeeze(),
+                "input_ids": tokenized_retain_sample["input_ids"],
+                "attention_mask": tokenized_retain_sample["attention_mask"],
+                "start_locs": len(tokenizer(question_prefix)["input_ids"]),
+                "labels": tokenized_retain_sample["input_ids"],
             }
         )
 
@@ -237,7 +232,6 @@ MAX_BAD_LOSS = -90
 SAVE_EVERY = 500
 LOG_FILE = "logs/default.log"
 
-# Set up logging
 logging.basicConfig(
     filename=LOG_FILE,
     filemode="w+",
@@ -246,28 +240,26 @@ logging.basicConfig(
     level=logging.INFO,
 )
 
-def train(input_model_path, retain_set, forget_set, retain_val_set, forget_val_set, output_model_path, device="cuda"):
 
-    # Initialize Accelerator for distributed training support
-    accelerator = Accelerator()
+def train(input_model_path, retain_set, forget_set, retain_val_set, forget_val_set, output_model_path):
+    # Initialize Accelerator for distributed training on multiple GPUs
+    accelerator = Accelerator() 
     device = accelerator.device
-
-
 
     # Load model and tokenizer
     model = AutoModelForCausalLM.from_pretrained(input_model_path)
     tokenizer = AutoTokenizer.from_pretrained("allenai/OLMo-7B-0724-Instruct-hf")
 
-    model.to(device)
+    # Move model to device (done automatically later by accelerator.prepare())
+    pretrained_model = AutoModelForCausalLM.from_pretrained(input_model_path)
 
-
-    # Load datasets and prepare data loaders
+    # Prepare data loaders
     train_bad_loader = create_dataloader_from_parquet(tokenizer, forget_set, batch_size=BATCH_SIZE)
     train_normal_loader = create_dataloader_from_parquet(tokenizer, retain_set, batch_size=BATCH_SIZE)
     val_bad_loader = create_dataloader_from_parquet(tokenizer, forget_val_set, batch_size=BATCH_SIZE)
     val_normal_loader = create_dataloader_from_parquet(tokenizer, retain_val_set, batch_size=BATCH_SIZE)
 
-    # Configure optimizer and learning rate scheduler for LoRA
+    # Configure optimizer and learning rate scheduler
     optimizer = AdamW(model.parameters(), lr=LEARNING_RATE)
     num_training_steps = MAX_UNLEARN_STEPS
     lr_scheduler = get_scheduler(
@@ -277,30 +269,25 @@ def train(input_model_path, retain_set, forget_set, retain_val_set, forget_val_s
         num_training_steps=num_training_steps,
     )
 
-    # Prepare models and data loaders with Accelerator
-    model, optimizer, train_bad_loader, train_normal_loader, lr_scheduler = accelerator.prepare(
-        model, optimizer, train_bad_loader, train_normal_loader, lr_scheduler
+    # Use accelerator to prepare models, optimizer, and dataloaders for distributed training
+    model, pretrained_model, optimizer, train_bad_loader, train_normal_loader, lr_scheduler = accelerator.prepare(
+        model, pretrained_model, optimizer, train_bad_loader, train_normal_loader, lr_scheduler
     )
 
-    # Start training
+    # Training loop
     model.train()
-
-    # Load the pretrained model
-    pretrained_model = AutoModelForCausalLM.from_pretrained(input_model_path).to(device)
-
-    # Begin unlearning loop
     bad_loss = 0.0
     step = 0
     start_time = time.time()
 
     while bad_loss < MAX_BAD_LOSS or step < MAX_UNLEARN_STEPS:
         for bad_batch, normal_batch in zip(train_bad_loader, train_normal_loader):
-            # Calculate losses for unlearning
-            bad_loss = get_answer_loss("ga", bad_batch, model, device="cuda")
-            retain_loss = get_retain_ans_loss(normal_batch, tokenizer, model, K=5, device="cuda")
-            normal_loss = compute_kl(pretrained_model, model, normal_batch, device="cuda")
+            # Calculate losses
+            bad_loss = get_answer_loss("ga", bad_batch, model, device=accelerator.device)
+            retain_loss = get_retain_ans_loss(normal_batch, tokenizer, model, device=accelerator.device)
+            normal_loss = compute_kl(pretrained_model, model, normal_batch, device=accelerator.device)
 
-            # Combine losses with specified weights
+            # Combine losses
             loss = BAD_WEIGHT * bad_loss + RETAIN_WEIGHT * retain_loss + NORMAL_WEIGHT * normal_loss
 
             # Backpropagation
@@ -309,41 +296,44 @@ def train(input_model_path, retain_set, forget_set, retain_val_set, forget_val_s
             lr_scheduler.step()
             optimizer.zero_grad()
 
-            # Logging and saving model at intervals
-            logging.info(f"Step: {step}, Bad Loss: {bad_loss:.2f}, Normal Loss: {normal_loss:.2f}")
-            print(f"Step: {step}, Bad Loss: {bad_loss:.2f}, Normal Loss: {normal_loss:.2f}")
+            # Logging
+            logging.info(f"Step: {step}, Bad Loss: {bad_loss:.2f}, Retain Loss: {retain_loss:.2f}, KL Loss: {normal_loss:.2f}")
             step += 1
 
+            # Validation and checkpoint saving
             if step % SAVE_EVERY == 0:
-                # Validation step
                 model.eval()
                 val_bad_loss, val_normal_loss = 0, 0
 
+                # Validation loop
                 with torch.no_grad():
                     for val_bad_batch in val_bad_loader:
-                        val_bad_loss += get_answer_loss("ga", val_bad_batch, model, device=device).item()
+                        val_bad_loss += get_answer_loss("ga", val_bad_batch, model, device=accelerator.device).item()
 
                     for val_normal_batch in val_normal_loader:
-                        val_normal_loss += get_retain_ans_loss(val_normal_batch, tokenizer, model, K=5, device=device).item()
+                        val_normal_loss += get_retain_ans_loss(val_normal_batch, tokenizer, model, device=accelerator.device).item()
 
-                # Average validation loss across batches
+                # Average validation losses
                 val_bad_loss /= len(val_bad_loader)
                 val_normal_loss /= len(val_normal_loader)
 
                 logging.info(f"Validation - Step: {step}, Val Bad Loss: {val_bad_loss:.2f}, Val Normal Loss: {val_normal_loss:.2f}")
-                print(f"Validation - Step: {step}, Val Bad Loss: {val_bad_loss:.2f}, Val Normal Loss: {val_normal_loss:.2f}")
 
-                # Save the LoRA model
-                model.save_pretrained(output_model_path, from_pt=True)
-                model.train()  # Set back to training mode after validation
+                # Save checkpoint using Accelerator
+                accelerator.wait_for_everyone()
+                unwrapped_model = accelerator.unwrap_model(model)
+                unwrapped_model.save_pretrained(output_model_path, save_function=accelerator.save)
+                model.train()
 
     # Log total time and save final model
     end_time = time.time()
-    logging.info(f"Total time: {int(end_time - start_time)} seconds")
-    model.save_pretrained(output_model_path, from_pt=True)
-    logging.info("Unlearning process complete.")
-    
-    # Argument parser
+    logging.info(f"Total training time: {int(end_time - start_time)} seconds")
+    accelerator.wait_for_everyone()
+    unwrapped_model = accelerator.unwrap_model(model)
+    unwrapped_model.save_pretrained(output_model_path)
+    logging.info("Training complete.")    
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="SLURM-compatible training script for unlearning model")
     parser.add_argument("--input_model_path", type=str, required=True, help="Path to the input model")
@@ -354,7 +344,6 @@ if __name__ == "__main__":
     parser.add_argument("--output_model_path", type=str, required=True, help="Path to save the output model")
     args = parser.parse_args()
 
-    # Configure logging
     os.makedirs("logs", exist_ok=True)
     logging.basicConfig(
         filename="logs/training.log",
