@@ -1,76 +1,62 @@
-# Interim Report 3011
+# JMBach at SemEval-2025 Task 4: Machine Unlearning
 
-## Task Overview
-This project addresses the challenge of **Machine Unlearning** in Large Language Models (LLMs). The focus is to ensure selective forgetting of specific data (Forget sets) while retaining critical information (Retain sets). This involves handling synthetic and real datasets for tasks like sentence completion and question-answering, and assessing unlearning strategies using comprehensive evaluation metrics.
+### Introduction
 
-#### Deadlines
-- Evaluation period: 10 to 30th January 2025
-- Paper submission: 28 February 2025
-
-#### SubTasks
-- **Subtask 1**: Long-form synthetic creative documents.
-- **Subtask 2**: Short form synthetic biographies containing personally identifiable information (PII).
-- **Subtask 3**: Real documents from the target model’s training dataset.
-
-#### Model Use
-- A fine-tuned 7B model (base model: OLMo-7B-0724-Instruct-hf).  
-- And a smaller fine-tuned 1B LLM.
-
-#### Evaluation framework
-- Regurgitation rates using ROUGE-L.
-- Exact match rate for question-answering tasks.
-- Membership inference attacks (MIA) detection rates.
-- Performance benchmarking on MMLU datasets.
-
-## Progress So Far
-Our implementation focuses on training a fine-tuned unlearning pipeline for LLMs based on the task description. Below is a summary of the work completed.
-
-### Algorithms
-We implement an **iterative unlearning training loop** that balances:
-- Minimise loss on Forget sets (unlearning data).
-- Preserving high accuracy on Retain sets (critical information).
-- Maintaing general knowledge and utility in the model, minise deviation from the original model.
+> What is the task about, why is it important. ~1 paragraph
 
 
-### Process Flow Summary
-The core implementation focuses on building a robust pipeline to selectively unlearn specific information from a pretrained language model while retaining crucial knowledge.
-1. Data Preparation: Load and tokenize datasets into consistent input-output formats for Forget and Retain sets.
-2. Loss Computation: Use KL divergence, answer loss, and retain loss to guide selective forgetting and retention.
-3. Training: Iteratively compute losses and update the model parameters to achieve unlearning objectives.
-4. Validation: Periodically evaluate the model's forgetting and retention performance.
-5. Saving: Save intermediate and final model checkpoints for evaluation and potential reuse.
+> What is the main strategy your system uses. ~1 paragraph
 
-#### 1 Data Preparation
-The first step involves reading datasets from Parquet files and processing them into PyTorch DataLoaders. The `create_dataloader_from_parquet` function tokenizes the data into a consistent input-output format (`### Input: ... ### Output: ...`) while ensuring truncation and padding to meet maximum sequence length constraints.
 
-#### 2 Loss Computation
-To guide the unlearning process:
-- The **KL Divergence** between the pretrained model and the fine-tuned model helps retain general knowledge.
-- The **Answer Loss** focuses on specific regions of tokenized inputs, allowing for gradient ascent (forgetting) or gradient descent (retaining) as necessary.
-- The **Retain Loss** applies the answer loss specifically to the retain dataset, ensuring that the model maintains the correct associations for retained data.
+> What did you discover by particpanting in this task? Key quantitative and qualitative results, such as what your system struggles with. ~1 paragraph
 
-#### 3 Model Finetune and Training Loop
-The primary training function (`train`) orchestrates the unlearning process by iteratively calculating the combined loss. This process includes:
-- Loading a pretrained model and datasets.
-- Computing Forget Loss, Retain Loss, and Normal Loss for each training step.
-- Backpropagation and model optimization using weighted combinations of these loss metrics.
+### Background
 
-#### 4 Validation and Checkpoints
-At regular intervals, the model is evaluated on validation datasets for forgetting and retention performance. Checkpoints are saved periodically, ensuring the model’s progress is well-documented and recoverable.
+> In your own words, summarize important details about the task setup: kind of input and output (give an example if possible); what datasets were used, including language, genre, and size. If there were multiple tracks, say which you participated in.
 
-#### 5 Execution and Argument Parsing
-The program's entry point (`__main__`) handles user-defined arguments for paths and configurations. It triggers the training process by passing these inputs to the `train` function.
 
-### Next Steps
-The current codes have been sent to the cluster and waiting for the results. 
+### System Overview
 
-#### 1 Evaluation and Robust Testing
-The model should undergone testing using the evaluation scripts given to quaitfy its unlearing performance. 
+> Key algorithms and modeling decisions in your system; resources used beyond the provided training data; challenging aspects of the task and how your system addresses them. This may require multiple pages and several subsections, and should allow the reader to mostly reimplement your system’s algorithms.
 
-This includes assessing its effectiveness at forgetting targeted data while retaining essential knowledge, as measured by metrics like ROUGE-L and exact match rates. Benchmark tests on MMLU can verify the preservation of general language understanding abilities, while privacy-focused tests, such as membership inference attacks, will ensure the model does not inadvertently reveal sensitive data.
+> Use equations and pseudocode if they help convey your original design decisions, as well as explaining them in English. If you are using a widely popular model/algorithm like logistic regression, an LSTM, or stochastic gradient descent, a citation will suffice—you do not need to spell out all the mathematical details.
 
-#### 2 Optimisation of Training Parameters
-Experiment with hyperparamenter such as loss weights, learning rates (lr), batch sizes etc to improve performance. Adversarial testing should be conducted to determine whether the model can truly forget the targeted information under challenging or unexpected conditions. 
+> Give an example if possible to describe concretely the stages of your algorithm.
 
-#### 3 Documentation and Submission
-Wrap up a clear descriptions of methods, results, and code structure.
+> If you have multiple systems/configurations, delineate them clearly.
+
+> This is likely to be the longest section of your paper.
+
+### Experimental setup
+
+> How data splits (train/dev/test) are used.
+
+> Key details about preprocessing, hyperparameter tuning, etc. that a reader would need to know to replicate your experiments. If space is limited, some of the details can go in an Appendix.
+
+> External tools/libraries used, preferably with version number and URL in a footnote.
+
+> Summarize the evaluation measures used in the task.
+
+> You do not need to devote much—if any—space to discussing the organization of your code or file formats.
+
+### Results 
+
+> Main quantitative findings: How well did your system perform at the task according to official metrics? How does it rank in the competition?
+
+> Quantitative analysis: Ablations or other comparisons of different design decisions to better understand what works best. Indicate which data split is used for the analyses (e.g. in table captions). If you modify your system subsequent to the official submission, clearly indicate which results are from the modified system.
+
+> Error analysis: Look at some of your system predictions to get a feel for the kinds of mistakes it makes. If appropriate to the task, consider including a confusion matrix or other analysis of error subtypes—you may need to manually tag a small sample for this.
+
+### Conclusions
+
+> A few summary sentences about your system, results, and ideas for future work.
+
+### Acknowledgement
+
+> Anyone you wish to thank who is not an author, which may include grants and anonymous reviewers.
+
+### Appendix
+
+> Any low-level implementation details—rules and pre-/post-processing steps, features, hyperparameters, etc.—that would help the reader to replicate your system and experiments, but are not necessary to understand major design points of the system and experiments.
+
+> Any figures or results that aren’t crucial to the main points in your paper but might help an interested reader delve deeper.
