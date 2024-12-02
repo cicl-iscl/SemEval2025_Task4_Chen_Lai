@@ -5,15 +5,14 @@ SemEval 2025 [Homepage](https://semeval.github.io/SemEval2025/tasks) <br>
 
 ### Team member: Chi Kuan Lai, Yifei Chen <br>
 
-### Options
+### Task chosen
 [Task 4](https://llmunlearningsemeval2025.github.io/) Machine Unlearning <br>
-[Task 9](https://food-hazard-detection-semeval-2025.github.io/) Food Detection <br>
 
 We will start with the Task 4 as we find this the most interesting. Yet if we reached unsolvable bottleneck, we will switch to task 9.
 
 ### Paper Writing
-System description paper
-- Describe the methods
+[Submission requirements](https://semeval.github.io/paper-requirements.html)  
+[Writing guidelines](https://semeval.github.io/system-paper-template.html)
 
 ### Initial idea
 ### 1. Perform Gradient Ascent on forgetting set
