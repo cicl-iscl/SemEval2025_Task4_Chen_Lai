@@ -166,63 +166,6 @@ def get_answer_loss(operation, batch, model, device):
 
     return final_loss
 
-"""
-def get_retain_ans_loss(retain_set, tokenizer, model, device):
-    
-    Compute the loss for the retain data, encouraging the model to correctly associate
-    specific questions with their correct answers.
-
-    Args:
-        retain_set: A batch of retaining data (contains tokenized input IDs and labels).
-        tokenizer: The tokenizer.
-        model: Model undergoing training.
-        device: GPU device.
-
-    Returns:
-       The retain loss.
-   
-    # Move data to the appropriate device
-    retain_input_ids = retain_set["input_ids"].to(device)
-    retain_attention_mask = retain_set["attention_mask"].to(device)
-    retain_labels = retain_set["labels"].to(device)
-
-    # Decode and reconstruct the original retain samples
-    batch_retain_features = []
-
-    for batch_idx in range(retain_input_ids.shape[0]):
-        # Decode tokenized input to reconstruct the input-output text
-        single_input_id = retain_input_ids[batch_idx, :]
-        ori_text = tokenizer.decode(single_input_id, skip_special_tokens=True)
-
-        # Extract the question for setting up the retain sample
-        question = ori_text.split("###")[1].split("Input:")[-1].strip()
-        question_prefix = f"### Input: {question}\n ### Output: "
-
-        # Tokenize the correct answer from the original labels
-        tokenized_retain_sample = {
-            "input_ids": retain_labels[batch_idx],
-            "attention_mask": retain_attention_mask[batch_idx]
-        }
-
-        batch_retain_features.append(
-            {
-                "input_ids": tokenized_retain_sample["input_ids"],
-                "attention_mask": tokenized_retain_sample["attention_mask"],
-                "start_locs": len(tokenizer(question_prefix)["input_ids"]),
-                "labels": tokenized_retain_sample["input_ids"],
-            }
-        )
-
-    # Collate and batchify the retain features for loss calculation
-    data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
-    batch_retain = data_collator(batch_retain_features)
-
-    # Compute the retain loss using the retain samples
-    retain_loss = get_answer_loss("gd", batch_retain, model, device=device)
-
-    return retain_loss
-"""
-
 # Configuration constants
 MAX_UNLEARN_STEPS = 5000
 BAD_WEIGHT = 0.5
