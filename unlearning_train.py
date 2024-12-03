@@ -45,7 +45,6 @@ def create_dataloader_from_parquet(tokenizer, parquet_file, batch_size=4, shuffl
             max_length=max_length,
         )
         
-        # Calculate start locations
         start_locs = [
             len(tokenizer(f"### Input: {inp}\n ### Output: ", truncation=True, max_length=max_length)["input_ids"])
             for inp in examples['input']
@@ -104,7 +103,6 @@ def compute_kl(pretrained_model, current_model, batch, device):
     retain_probs = torch.nn.functional.log_softmax(pretrained_outputs.logits, dim=-1)
     retain_probs = retain_probs.view(-1, pretrained_outputs.logits.shape[-1])
 
-    # Remove the torch.no_grad() context for the current model
     normal_outputs = current_model(
         batch["input_ids"].to(device),
         attention_mask=batch["attention_mask"].to(device),
