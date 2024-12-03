@@ -94,26 +94,28 @@ def compute_kl(pretrained_model, current_model, batch, device):
     Returns:
        The KL loss.
     """
-    normal_outputs = current_model(
-        batch["input_ids"].to(device),
-        attention_mask=batch["attention_mask"].to(device),
-        labels=batch["labels"].to(device),
-    )
-
+    
     with torch.no_grad():
         pretrained_outputs = pretrained_model(
             batch["input_ids"].to(device),
             attention_mask=batch["attention_mask"].to(device),
             labels=batch["labels"].to(device),
         )
+    retain_probs = torch.nn.functional.log_softmax(pretrained_outputs.logits, dim=-1)
+    retain_probs = retain_probs.view(-1, pretrained_outputs.logits.shape[-1])
 
-    # P: pretrained model; Q: current model.
-    prob_p = torch.nn.functional.softmax(pretrained_outputs.logits, -1)
-    prob_q = torch.nn.functional.softmax(normal_outputs.logits, -1)
+    # Remove the torch.no_grad() context for the current model
+    normal_outputs = current_model(
+        batch["input_ids"].to(device),
+        attention_mask=batch["attention_mask"].to(device),
+        labels=batch["labels"].to(device),
+    )
+    current_probs = torch.nn.functional.log_softmax(normal_outputs.logits, dim=-1)
+    current_probs = current_probs.view(-1, normal_outputs.logits.shape[-1])
 
-    loss = -(prob_p * torch.log(prob_q + 1e-12)).sum(-1).mean()
-
-    return loss
+    retain_loss = torch.nn.functional.kl_div(current_probs, retain_probs, reduction='batchmean', log_target=True)
+    
+    return retain_loss
 
 def get_answer_loss(operation, batch, model, device):
     """
