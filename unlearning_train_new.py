@@ -168,7 +168,7 @@ def ga_loss(batch, model, device):
     return final_loss
 
 # Configuration
-MAX_UNLEARN_STEPS = 1000
+MAX_UNLEARN_STEPS = 500
 BAD_WEIGHT = 0.2
 NORMAL_WEIGHT = 1
 BATCH_SIZE = 32
