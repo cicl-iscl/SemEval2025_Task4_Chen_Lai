@@ -1,0 +1,47 @@
+OVERALL:
+- Loads & tokenizes data
+- Uses GA loss to forget targeted knowledge
+- Uses KL loss to retain general knowledge
+- Optimizes model through iterative training
+- Saves the updated model
+
+PSEUDO-CODES:
+
+SET SEED for reproducibility  
+IMPORT required libraries (Torch, Transformers, Data Handling, Logging)  
+
+DEFINE `create_dataloader_from_parquet`:
+    - Load dataset from Parquet  
+    - Format text as QA or text generation
+        - QA pairs: `### Question: ... ### Answer: ....`
+        - Text generation: ` ### Text: ....`
+    - Tokenize and prepare DataLoader  
+    - RETURN DataLoader  
+
+DEFINE `ga_loss`:
+    - Compute negative cross-entropy on answer section  
+    - Apply weight mask to focus on the answer  
+    - RETURN loss 
+
+DEFINE `compute_kl`:
+    - Get predictions from pretrained and current models  
+    - Compute KL divergence loss (to retain general knowledge)  
+    - RETURN loss   
+
+SET hyperparameters (steps, weights, batch size, learning rate, logging)  
+
+DEFINE `unlearn`:
+    - Load tokenizer and models (pretrained + current)  
+    - Prepare retain and forget DataLoaders  
+    - Initialize optimizer and learning rate scheduler  
+    - LOOP for MAX_UNLEARN_STEPS:
+        - Compute `ga_loss` (forget target knowledge)  
+        - Compute `compute_kl` (retain general knowledge)  
+        - Compute total loss and update model:
+            - LOSS = (BAD_WEIGHT * bad_loss) + (NORMAL_WEIGHT * normal_loss)  
+        - Log training progress  
+    - Save modified model  
+
+IF script is run as main:
+    - Parse arguments (input model, datasets, output path)  
+    - CALL `unlearn` with provided paths  
