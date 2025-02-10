@@ -1,8 +1,12 @@
 ## Part 1: Task Overview
 
-Hello everyone! Today, I’ll be presenting our work on Machine Unlearning. As LLMs become more powerful, they also raise concerns about memorising sensitive or private information. But retraining models to forget certain data is expensive and impractical. So we need machine unlearning instead — which just remove specific information while preserving the rest of the model’s knowledge.
+Hello everyone! Today, I’ll be presenting our work on Machine Unlearning. 
 
-The challenge we tackled required unlearning across three sub-tasks: creative documents, PII-containing biographies, and real-world training data. Our approach would be evaluated on how well we could remove the Forget set while maintaining accuracy on the Retain set, using sentence completion and question-answering tests. These are the two evaluation criteria given by the organisers.
+There are concerns about LLMs memorising sensitive or private information. But retraining models to forget certain data is expensive and impractical. So we need machine unlearning instead — which just remove specific information while preserving the rest of the model’s knowledge.
+
+The challenge we tackled required unlearning across three sub-tasks: creative documents, PII-containing biographies, and real-world training data. 
+
+Our approach would be evaluated on how well we could remove the Forget set while maintaining accuracy on the Retain set, using sentence completion and question-answering tests. These are the two evaluation criteria given by the organisers.
 
 <!-- Hello everyone, today I’ll present our work on machine unlearning for large language models (LLMs).
 
@@ -34,18 +38,38 @@ Our core strategy is dual-objective optimization:
 For an easier manipulation, we started with a smaller 1B model, whose the dataset is similar to the given 7B benchmark model.
 
 ### 1. Data Processing
-The function `create_dataloader_from_parquet `tokenizes inputs from both datasets, make sure the model recognizes which parts should be forgotten or retained. Questions and answers are structured differently from general text generation to help guide the learning process.
+The function `create_dataloader_from_parquet ` prepares the data. It tokenizes inputs from both datasets, make sure the model recognizes what should be forgotten or retained. Questions and answers are structured differently from general text generation. This guides the learning process in the right way.
 
 ### 2. Gradient Ascent for Forgetting
-The `ga_loss` function promotes forgetting by maximizing the loss on answer sections from the forget set. Instead of improving prediction accuracy, the model is nudged away from correctly generating those forgotten answers. A weight mask ensures only the answer portion is affected, while padding tokens remain untouched.
+The `ga_loss` function helps the model forget by maximizing the loss on answer sections from the forget set. Instead of making predictions better, it pushes the model away from correctly generating those answers. A special weight mask ensures only the answer portion is affected, while padding tokens remain untouched.
 
 ### 3. KL Divergence for Retention
-The `compute_kl` function prevents catastrophic forgetting by minimizing the KL divergence between the current model and a frozen copy of the pretrained model. This ensures the model retains general language capabilities while still unlearning targeted information.
+The `compute_kl` function prevents too much forgetting. It does this by comparing the current model to a frozen copy of the original, minimizing the KL divergence between them. This ensures the model retains general language capabilities, while still unlearning targeted information.
 
 ### 4. Training Loop
-The unlearn function iteratively trains the model using a weighted combination of GA loss (to forget) and KL loss (to retain). The BAD_WEIGHT parameter controls forgetting strength, while NORMAL_WEIGHT maintains generalization. Using the Accelerator library, the model runs efficiently on GPUs.
+The `unlearn` function iteratively trains the model. It balances two loss functions above. The BAD_WEIGHT setting controls how much the model forgets. The NORMAL_WEIGHT setting helps it stay well-rounded. With the Accelerator library, everything runs smoothly on GPUs. 
 
-By balancing these two loss functions, the model gradually erases specific knowledge while preserving linguistic fluency, achieving selective unlearning rather than full retraining from scratch.
+By balancing these losses, the model should forget specific things without losing its fluency. This way, we unlearn only what we need—without starting from scratch.
+
+## Part 3. Main challenges you faced:
+
+One of the main challenges we faced was GPU constraints. Since our algorithm needed to load both the teacher and student models, their activation consumed a significant amount of GPU memory. As a result, we couldn’t adjust many parameters, such as using a large batch size or adding a random answer loss to maintain normal utility. 
+
+We also spent a lot of time studying how to distribute training effectively, but in the end, only the 1B model was successfully trained.
+
+Another challenge was the cluster queueing system. Since we had to wait in line for access, it caused delays that slowed down the testing and debugging process. Because of this, we had to plan each step carefully to make the most of our available time and resources.
+
+## Part 4. Your results, your rank:
+
+Our team ranked XX place. Here’s a quick overview of our model’s unlearning evaluation results:
+
+- ⁠MMLU Score: 0.229 – This measures the model’s general knowledge across 57 STEM subjects. Since it falls below the 0.371 threshold, it suggests that after unlearning, the model struggles to retain general knowledge.
+
+- MIA Score: 0.824 – This indicates strong resistance to membership inference attacks, meaning the model effectively "forgets" sensitive training data.
+
+- ⁠Task Aggregate Score: 0.0 – This score combines two key factors: the regurgitation _/rɪˌɡəːdʒɪˈteɪʃn/_ score and the exact match knowledge score. This indicates poor performance in one or more tasks.
+
+- Our Final Score is 0.351. This average of the above scores reflects a balance between privacy protection and performance. It suggests that while our model excels in preventing data leakage, its low general knowledge retention and task performance significantly impacted the overall score.
 
 <!-- ### 1. Data Processing
 

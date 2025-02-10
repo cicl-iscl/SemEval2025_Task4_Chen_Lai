@@ -1,9 +1,33 @@
+TASK OVERVIEW:
+
+Key point:
+How well we could remove the Forget set, 
+while maintaining accuracy on the Retain set.
+Maintain the general performance of the model.
+
+Three sub-tasks: 
+    - creative documents
+    - PII-containing biographies
+    - real-world training data
+
+Evaluation criteria:
+- Sentence completion
+- Question-answering tests
+
+
+======
+
 OVERALL:
+1. Algorithms: Dual-objective optimization.
+2. Model: 1B model not 7B model.
+3. Steps:
 - Loads & tokenizes data
 - Uses GA loss to forget targeted knowledge
 - Uses KL loss to retain general knowledge
 - Optimizes model through iterative training
 - Saves the updated model
+
+======
 
 PSEUDO-CODES:
 
@@ -45,3 +69,20 @@ DEFINE `unlearn`:
 IF script is run as main:
     - Parse arguments (input model, datasets, output path)  
     - CALL `unlearn` with provided paths  
+
+
+======
+
+Challenges:
+- GPU constraints, training distribution
+- Cluster queueing
+
+======
+
+Ranks & Results:
+- No ranking yet
+- Evaluation:
+    - MMLU Score: '0.229' (< 0.371)
+    - MIA Score: '0.824' (effectively forgetted)
+    - Task Aggregate Score: '0.0' (poor task performance)
+    - Final Score: '0.351'
