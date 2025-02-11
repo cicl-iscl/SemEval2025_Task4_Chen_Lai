@@ -1,6 +1,9 @@
-'MACHINE UNLEARNING'
+TASK 4: MACHINE UNLEARNING
+Instead of retraining the model, 
+just remove specific info while preserve the rest.
 
-TASK OVERVIEW:
+=====================:
+=== TASK OVERVIEW ===:
 
 Key point:
 How well we could remove the Forget set, 
@@ -16,11 +19,12 @@ Evaluation criteria:
 - Sentence completion
 - Question-answering tests
 
+===============:
+=== OVERALL ===:
 
-======
-
-OVERALL:
 1. Algorithms: Dual-objective optimization.
+    - Gradient Ascent for forgetting
+    - KL Divergence for rentention
 2. Model: 1B model not 7B model.
 3. Steps:
 - Loads & tokenizes data
@@ -29,9 +33,9 @@ OVERALL:
 - Optimizes model through iterative training
 - Saves the updated model
 
-======
 
-PSEUDO-CODES:
+====================:
+=== PSEUDO-CODES ===:
 
 SET SEED for reproducibility  
 IMPORT required libraries (Torch, Transformers, Data Handling, Logging)  
@@ -73,18 +77,29 @@ IF script is run as main:
     - CALL `unlearn` with provided paths  
 
 
-======
+================:
+===CHALLENGES===:
 
 Challenges:
+
 - GPU constraints, training distribution
 - Cluster queueing
 
-======
 
 Ranks & Results:
-- No ranking yet
+- Ranking: #15 out of 24.
 - Evaluation:
-    - MMLU Score: '0.229' (< 0.371)
+    - MMLU Score: '0.229' 
+                (< 0.371 threshold, 
+                but included just for completeness not for filtering)
     - MIA Score: '0.824' (effectively forgetted)
     - Task Aggregate Score: '0.0' (poor task performance)
-    - Final Score: '0.351'
+    - Final Score: '0.351' (used for ranking)
+
+Future:
+- 7B model (need other cluster)
+- Recommended algorithms: Gradient difference, Negative Preference Optimisation.
+
+"Gradient Ascent and KL Minimization were discarded 
+since they severely degrade model utility 
+(MMLU drops below predetermined threshold of 0.371)."
