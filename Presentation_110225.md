@@ -35,7 +35,7 @@ Our core strategy is dual-objective optimization:
 - Forget: Maximize loss on the forget set (gradient ascent).
 - Retain: Align with the original model on the retain set (KL divergence).
 
-For an easier manipulation, we started with a smaller 1B model, whose the dataset is similar to the given 7B benchmark model.
+For an easier manipulation, we started with a smaller 1B model, whose dataset is similar to the given 7B benchmark model.
 
 ### 1. Data Processing
 The function `create_dataloader_from_parquet ` prepares the data. It tokenizes inputs from both datasets, make sure the model recognizes what should be forgotten or retained. Questions and answers are structured differently from general text generation. This guides the learning process in the right way.
@@ -69,7 +69,7 @@ Our team ranked XX place. Here’s a quick overview of our model’s unlearning 
 
 - ⁠Task Aggregate Score: 0.0 – This score combines two key factors: the regurgitation _/rɪˌɡəːdʒɪˈteɪʃn/_ score and the exact match knowledge score. This indicates poor performance in one or more tasks.
 
-- Our Final Score is 0.351. This average of the above scores reflects a balance between privacy protection and performance. It suggests that while our model excels in preventing data leakage, its low general knowledge retention and task performance significantly impacted the overall score.
+- Our Final Score is 0.351. This average of the above scores reflects a balance between privacy protection and performance. It suggests that while our model excels in preventing data leakage, it has low general knowledge retention and task performance.
 
 <!-- ### 1. Data Processing
 
