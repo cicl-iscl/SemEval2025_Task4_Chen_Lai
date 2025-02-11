@@ -61,7 +61,7 @@ Another challenge was the cluster queueing system. Since we had to wait in line 
 
 ## Part 4. Your results, your rank:
 
-Our team ranked XX place. Here’s a quick overview of our model’s unlearning evaluation results:
+Our team ranked 15 place. Here’s a quick overview of our model’s unlearning evaluation results:
 
 - ⁠MMLU Score: 0.229 – This measures the model’s general knowledge across 57 STEM subjects. Since it falls below the 0.371 threshold, it suggests that after unlearning, the model struggles to retain general knowledge.
 
