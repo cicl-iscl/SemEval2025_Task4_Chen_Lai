@@ -53,7 +53,7 @@ By balancing these losses, the model should forget specific things without losin
 
 ## Part 3. Main challenges you faced:
 
-One of the main challenges we faced was GPU constraints. Since our algorithm needed to load both the teacher and student models, their activation consumed a significant amount of GPU memory. As a result, we couldn’t adjust many parameters, such as using a large batch size or adding a random answer loss to maintain normal utility. 
+One of the main challenges we faced was GPU constraints. We used the uni-cluster. Since our algorithm needed to load both the teacher and student models, their activation consumed a significant amount of GPU memory. As a result, we couldn’t adjust many parameters, such as using a large batch size or adding a random answer loss to maintain normal utility. 
 
 We also spent a lot of time studying how to distribute training effectively, but in the end, only the 1B model was successfully trained.
 
