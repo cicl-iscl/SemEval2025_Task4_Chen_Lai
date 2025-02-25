@@ -135,11 +135,13 @@ Training was conducted with iterative updates using this optimised loss function
        Final Score & 0.351 \\
        \hline
     \end{tabular}
-    \caption{Caption}
+    \caption{Scores of our system}
     \label{tab:final_score}
 \end{table}
 
-The evaluation framework provided by the organisers consists of four key metrics: MMLU Score, MIA Score, Task Aggregate Score, and Final Score. The MMLU Score measures model accuracy on a comprehensive STEM benchmark across 57 subjects, with a minimum threshold of 0.371 set to ensure sufficient model utility. Our model, however, achieved an MMLU Score of 0.229. Although this is below the specified threshold, it is important to note that the MMLU metric is included primarily for completeness rather than as a strict filter for performance.
+The evaluation framework provided by the organisers consists of four key metrics: MMLU Score, MIA Score, Task Aggregate Score, and Final Score. Table \ref{tab:final_score} presents our scores.
+
+The \textit{MMLU Score} measures model accuracy on a comprehensive STEM benchmark across 57 subjects, with a minimum threshold of 0.371 set to ensure sufficient model utility. Our model, however, achieved an MMLU Score of 0.229. Although this is below the specified threshold, it is important to note that the MMLU metric is included primarily for completeness rather than as a strict filter for performance.
 
 The \textit{MIA Score} evaluates the model’s resistance to membership inference attacks via a loss-based method, A high MIA score (close to 1) indicates that the model is robust to MIA, meaning it does not leak information about its training data. And our dual-objective unlearning strategy resulted in an MIA Score of 0.824, demonstrating that our approach is highly effective at removing targeted information and reducing the risk of sensitive data leakage. This high score is a clear testament to the success of the unlearning mechanism implemented in our framework.
 
@@ -147,7 +149,7 @@ Additionally, the \textit{Task Aggregate Score} is computed as the harmonic mean
 
 Finally, the \textit{Final Score}, calculated as the arithmetic mean of the MMLU, MIA, and Task Aggregate Scores, was 0.351. Based on this composite metric, our submission is ranked 15th out of 24 entries. These results collectively underscore a critical trade-off in our dual-objective approach: while our method might have excelled in eliminating targeted, potentially harmful content, it also results in a notable degradation of overall task performance.
 
-\section*{Conclusion}
+\section{Conclusion}
 
 Our experiments faced several practical challenges that influenced both training and model performance. A key constraint was the selection of a 1B parameter model instead of a 7B variant due to computational limitations. While necessary for efficiency, this decision likely contributed to performance degradation, as smaller models struggle to balance knowledge retention and unlearning.  
 
@@ -160,6 +162,10 @@ Despite these challenges, our systematic adjustments provided valuable insights 
 \section*{Limitations}
 
 \section*{Acknowledgments}
+We thank \textit{SemEval} organisers for dataset curation and anonymous reviewers for feedback. Compute resources provided by Stanford NLP Group.
+
+We thank our instructor \textit{Çağrı Çöltekin} from the course \textit{Challenges in Computational Linguistics} for encouraging and helping us on the completion of the task.
+
 
 \bibliography{anthology, custom}
 
@@ -169,6 +175,24 @@ Despite these challenges, our systematic adjustments provided valuable insights 
 
 \section{Appendices}
 
+Table \ref{tab:hyper} presents an overview of our hyper-parameters.
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{c|c}
+        \hline
+        \textbf{Hyper-paramers} & \textbf{Values} \\
+        MAX\_UNLEARN\_STEPS & $500$ \\
+        BAD\_WEIGHT & $0.2$ \\
+        NORMAL\_WEIGHT & $1$ \\
+        Learning Rate & $5\mathrm{e}-5$ \\
+        Batch Size & $32$ \\
+        \hline
+    \end{tabular}
+    \caption{Hyper-parameters}
+    \label{tab:hyper}
+\end{table}
+
 \label{sec:appendix}
-This is an appendix.
+
 \end{document}
