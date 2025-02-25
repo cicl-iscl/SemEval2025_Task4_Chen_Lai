@@ -17,7 +17,7 @@
 \author{Yifei Chen \and Chi Kuan Lai \\
   University of Tuebingen \\
   \texttt{yifei.chen@student.uni-tuebingen.de} \\
-  \texttt{chikuan.lai@student.uni-tuebingen.de} \\}
+  \texttt{chi-kuan.lai@student.uni-tuebingen.de} \\}
 
 \begin{document}
 \maketitle
@@ -39,7 +39,6 @@ The SemEval-2025 Task 4 on Machine Unlearning (Ramakrishna et al., 2024) is a sh
 \end{itemize}
 
 Our system participated in all three subtasks with the intention to implement and validate a widely adopted unlearning strategy, namely gradient ascent (GA). We employed a dual-objective optimisation strategy that combines gradient ascent and Kullback-Leibler (KL) divergence. GA maximizes the loss on the forget set, driving the model to unlearn specific information, while KL minimisation preserves general knowledge by minimizing divergence from the pre-trained model. This iterative process balances these objectives, ensuring targeted forgetting without severe degradation of overall performance. We implemented our approach on a 1-billion-parameter model due to computational constraints. The evaluation relied on sentence completion and Question and Answer (Q\&A) tests to measure both forgetting effectiveness and the retention of general knowledge. The details will be unfolded in the following sections.
-
 
 
 
@@ -69,7 +68,7 @@ After data preprocessing, depending on the subtask, the data input was either st
         \textbf{Input} & \textbf{Structure} \\ 
         \hline
         Q\&A Pairs & \texttt{\#\#\# Question: ...} \\
-        Q\&A Pairs & \texttt{\#\#\# Answer: ...} \\ 
+         & \texttt{\#\#\# Answer: ...} \\ 
         \hline
         Text Generation & \texttt{\#\#\# Text: ...} \\ 
         \hline
@@ -116,13 +115,11 @@ Additionally, we chose GA for its simplicity and clarity as an initial step in o
 
 \subsection*{Training process}
 
-Our training process followed a dual-objective optimisation framework, balancing targeted forgetting with general knowledge retention. The dataset was partitioned into a \textit{forget set} containing information to be unlearned and a \textit{retain set} preserving general knowledge. Proper preprocessing ensured correct formatting before training.
+Our training process followed a dual-objective optimisation framework, balancing targeted forgetting with general knowledge retention. The dataset was partitioned into a \textit{forget set} and a \textit{retain set} and restructured. Proper preprocessing ensured correct formatting before training.
 
-We applied a composite loss function: gradient ascent (GA) to increase loss on the forget set and Kullback-Leibler (KL) divergence to penalise deviations from general knowledge. Initially, we set equal loss weights (Retain = 1, Forget = 1), a batch size of 16, and a learning rate of 0.005. However, outputs were garbled on both sets, prompting adjustments. Increasing the batch size to 32 improved stability but did not resolve the issue.
+A composite loss function was employed, combining gradient ascent (GA) to increase loss on the forget set and Kullback-Leibler (KL) divergence to penalise deviations from general knowledge. The loss weights for retention and forgetting, batch size, and learning rate were systematically tuned to achieve stable training dynamics. Based on empirical evaluation, the optimal configuration was determined as a forget loss weight of 0.2, a batch size of 32, and a learning rate of 0.00005. This setup effectively balanced unlearning and retention while maintaining coherence in the retain set outputs.
 
-To refine training, we lowered the forget loss weight to 0.5, then 0.3, but results remained suboptimal. A significant improvement occurred when reducing the learning rate to 0.00005 and the forget loss weight to 0.2. This configuration effectively balanced unlearning and retention while maintaining coherence in the retain set outputs.
-
-Training proceeded with iterative updates using this optimised loss function. Early stopping, set with a patience of 4, prevented overfitting, halting training after 500 steps. The observed training dynamics highlight the sensitivity of hyper-parameters, with retention being more fragile than forgetting. Our findings underscore the importance of careful tuning to maintain utility while achieving effective unlearning.
+Training was conducted with iterative updates using this optimised loss function. An early stopping mechanism with a patience of 4 was implemented to prevent over-fitting, terminating training after 500 steps. The sensitivity analysis of hyper-parameters indicated that retention is more fragile than forgetting, underscoring the importance of careful tuning to maintain utility while achieving effective unlearning.
 
 \section{Results}
 
