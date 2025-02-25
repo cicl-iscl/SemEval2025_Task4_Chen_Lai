@@ -14,11 +14,9 @@
 
 \title{NEKO at SemEval-2025 Task 4: A Gradient Ascent Based Machine Unlearning Strategy}
 
-\author{Yifei Chen \\
-  University of Tuebingen\\
-  \texttt{yifei.chen@uni-tuebingen.de} \\\And
-  Chi Kuan Lai  \\
+\author{Yifei Chen \and Chi Kuan Lai \\
   University of Tuebingen \\
+  \texttt{yifei.chen@student.uni-tuebingen.de} \\
   \texttt{chikuan.lai@student.uni-tuebingen.de} \\}
 
 \begin{document}
@@ -40,7 +38,7 @@ The SemEval-2025 Task 4 on Machine Unlearning (Ramakrishna et al., 2024) is a sh
     \item \textbf{Subtask 3}: Real documents sampled from the target model’s training dataset. 
 \end{itemize}
 
-Our system participated in all three subtasks with the intention to implement and validati a widely adopted unlearning strategy, namely gradient ascent (GA). We employed a dual-objective optimisation strategy that combines gradient ascent and Kullback-Leibler (KL) divergence. GA maximizes the loss on the forget set, driving the model to unlearn specific information, while KL minimisation preserves general knowledge by minimizing divergence from the pre-trained model. This iterative process balances these objectives, ensuring targeted forgetting without severe degradation of overall performance. We implemented our approach on a 1-billion-parameter model due to computational constraints. The evaluation relied on sentence completion and Question and Answer (Q\&A) tests to measure both forgetting effectiveness and the retention of general knowledge. The details will be unfolded in the following sections.
+Our system participated in all three subtasks with the intention to implement and validate a widely adopted unlearning strategy, namely gradient ascent (GA). We employed a dual-objective optimisation strategy that combines gradient ascent and Kullback-Leibler (KL) divergence. GA maximizes the loss on the forget set, driving the model to unlearn specific information, while KL minimisation preserves general knowledge by minimizing divergence from the pre-trained model. This iterative process balances these objectives, ensuring targeted forgetting without severe degradation of overall performance. We implemented our approach on a 1-billion-parameter model due to computational constraints. The evaluation relied on sentence completion and Question and Answer (Q\&A) tests to measure both forgetting effectiveness and the retention of general knowledge. The details will be unfolded in the following sections.
 
 
 
@@ -97,14 +95,18 @@ To mitigate unintended degradation in general performance, we followed Yao et al
 Our framework optimizes two objectives concurrently:
 
 \begin{equation}
+    \label{eq:ga}
     \mathcal{L}_{\text{GA}} = -\frac{1}{N} \sum_{i=1}^{N} \text{CrossEntropy}(\hat{y}_i, y_i)
 \end{equation}
 
-\begin{equation}
-    \mathcal{L}_{\text{KL}} = \frac{1}{N} \sum_{i=1}^{N} \text{KL}(\text{softmax}(M_{\text{ref}}(x_i)), \text{softmax}(M(x_i)))
-\end{equation}
+\begin{align}
+    \label{eq:kl}
+    \mathcal{L}_{\text{KL}} &= \frac{1}{N} \sum_{i=1}^{N} \operatorname{KL} \big( \operatorname{softmax}(M_{\text{ref}}(x_i)), \notag \\
+    &\quad \operatorname{softmax}(M(x_i)) \big)
+\end{align}
 
 \begin{equation}
+    \label{eq:loss}
     \mathcal{L}_{\text{total}} = \alpha \cdot \underbrace{\mathcal{L}_{\text{GA}}}_{\text{Forgetting}} + \beta \cdot \underbrace{\mathcal{L}_{\text{KL}}}_{\text{Retention}}
 \end{equation}
 
