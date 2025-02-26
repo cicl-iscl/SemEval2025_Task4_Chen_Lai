@@ -14,10 +14,11 @@
 
 \title{NEKO at SemEval-2025 Task 4: A Gradient Ascent Based Machine Unlearning Strategy}
 
-\author{Yifei Chen \and Chi Kuan Lai \\
+\author{Chi Kuan Lai \and Yifei Chen \\
   University of Tuebingen \\
+  \texttt{chi-kuan.lai@student.uni-tuebingen.de} \\
   \texttt{yifei.chen@student.uni-tuebingen.de} \\
-  \texttt{chi-kuan.lai@student.uni-tuebingen.de} \\}
+  }
 
 \begin{document}
 \maketitle
@@ -27,9 +28,9 @@ The power and wide application of large language models (LLMs) has brought the c
 
 \section{Introduction}
 
-Large Language Models (LLMs) have demonstrated remarkable capabilities in generating human-like text, while there are growing concerns about data privacy in the interactions. Their ability to memorize vast amounts of data may lead to significant ethical and security issues (Liu et al., 2024), including enhancing societal biases and stereotypes, generating sensitive or harmful content, being vulnerable to jailbreaking, or potential misuses for cyberattacks \citep{HendrycksDan2023AOoC} (Hendrycks et al., 2023; Motoki et al., 2023; Wen et al., 2023; Zou et al., 2023). There is an urgent need for solutions that maintain a balance between ensuring the safe use of LLMs and preserving their utility to effectively meet user needs.
+Large Language Models (LLMs) have demonstrated remarkable capabilities in generating human-like text \cite{touvron2023open}, while there are growing concerns about data privacy in the interactions. Their ability to memorize vast amounts of data may lead to significant ethical and security issues \cite{liu2025rethinking, Xu2023MachineUnlearning}, including enhancing societal biases and stereotypes, generating sensitive or harmful content, private data leakage, being vulnerable to jailbreaking or other security attacks, or potential misuses for cyberattacks \cite{Hendrycks2023, jang2022knowledge, marchant2022hard, motoki2024, singh2017data, wen2023, zou2023}. There is an urgent need for solutions that maintain a balance between ensuring the safe use of LLMs and preserving their utility to effectively meet user needs \cite{chen2023unlearn}.
 
-Given the substantial time and resources required to train LLMs, retraining them to eliminate harmful influences is often impractical (Brown et al., 2020). As an alternative, machine unlearning has emerged as a method for selectively removing the influence of undesirable data from pre-trained models (Nguyen et al., 2022). Machine unlearning (MU), defined as ``forgetting undesirable misbehaviours on large language models (LLMs)" (Yao et al., 2024), aims to eliminate the influence of unwanted data, such as sensitive or illegal information, while maintaining the integrity of essential knowledge generation and not affecting causally unrelated information (Bu et al., 2024). 
+Given the substantial time and resources required to train LLMs, retraining them to eliminate harmful influences is often impractical \cite{brown2020}. As an alternative, machine unlearning has emerged as a method for selectively removing the influence of undesirable data from pre-trained models \cite{nguyen2022survey}. Machine unlearning (MU), defined as ``forgetting undesirable misbehaviours on large language models (LLMs)" \cite{yao2023}, aims to eliminate the influence of unwanted data, such as sensitive or illegal information, while maintaining the integrity of essential knowledge generation and not affecting causally unrelated information\cite{bu2024}. 
 
 The SemEval-2025 Task 4 on Machine Unlearning (Ramakrishna et al., 2024) is a shared task focused on machine unlearning for LLMs. Participants are tasked with developing methods to remove specific knowledge from a given trained model without retraining it from scratch. The goal is to ensure the model forgets the designated forget set while maintaining accuracy on the retain set. This challenge consists of three English-language subtasks:
 \begin{itemize}
@@ -83,13 +84,13 @@ The base model released by the organisers is a fine-tuned 7-billion-parameter (7
 
 \subsection*{Objectives}
 
-Similar to the inspiring work of Yao et al. (2024), our unlearning goal is effectiveness and utility. First, \textbf{effectiveness} requires that the updated model forget targeted samples such that its outputs for inputs in the forget set diverge substantially from the original responses. For example, if an input originally produces sensitive content, then after unlearning the model should yield a benign and insensitive response. Second, \textbf{utility} ensures that the model’s performance on standard tasks remains intact. The expected outputs vary with the task: for question-answering, the model must produce correct answers for the retain set while successfully omitting the forgotten information; for text generation, the system must maintain fluency and coherence, avoiding the inclusion of any content that has been designated for unlearning. This balance is crucial, as the removal of harmful or unwanted content should not come at the cost of overall performance.
+Similar to the inspiring work of \citet{yao2023}, our unlearning goal is effectiveness and utility. First, \textbf{effectiveness} requires that the updated model forget targeted samples such that its outputs for inputs in the forget set diverge substantially from the original responses. For example, if an input originally produces sensitive content, then after unlearning the model should yield a benign and insensitive response. Second, \textbf{utility} ensures that the model’s performance on standard tasks remains intact. The expected outputs vary with the task: for question-answering, the model must produce correct answers for the retain set while successfully omitting the forgotten information; for text generation, the system must maintain fluency and coherence, avoiding the inclusion of any content that has been designated for unlearning. This balance is crucial, as the removal of harmful or unwanted content should not come at the cost of overall performance.
 
 \subsection*{Methods}
 
-Mainly get the inspiration from Yao et al. (2024), we opted for Gradient Ascent (GA) in our unlearning framework due to its directness and efficiency. As there are only negative example in our task, gradient ascent would provide a more straightforward method to suppress sensitive outputs without requiring positive reinforcement signals, comparing to reinforcement learning from human feedback (RLHF), which relies on both positive and negative samples to adjust token probabilities indirectly. 
+Gradient-based methods are extensively employed for tackling unlearning tasks \cite{guo2019certified, maini2024tofu, neel2021descent, trippa2024tau}. Following \citet{yao2023}, we opted for Gradient Ascent (GA) in our unlearning framework due to its directness and efficiency. As there are only negative example in our task, gradient ascent would provide a more straightforward method to suppress sensitive outputs without requiring positive reinforcement signals, comparing to reinforcement learning from human feedback (RLHF), which relies on both positive and negative samples to adjust token probabilities indirectly. 
 
-To mitigate unintended degradation in general performance, we followed Yao et al.'s work (2024) and incorporated \textbf{Kullback--Leibler (KL) divergence}, which enforce a constraint deviations between the updated and original models on non-targeted data. While the gradient ascent loss pushes the model to “unlearn” targeted knowledge, the KL term effectively “pulls” the model back toward its original distribution on unaffected inputs. This ensures the model retains its competence on benign inputs while unlearning harmful content. Without this constraint, aggressive modifications may compromise overall utility. By balancing GA-driven forgetting with KL-based retention, we hope to achieve a controlled unlearning process that maintains fluency and accuracy.
+To mitigate unintended degradation in general performance, we also incorporated \textbf{Kullback--Leibler (KL) divergence}, which enforce a constraint deviations between the updated and original models on non-targeted data. While the gradient ascent loss pushes the model to “unlearn” targeted knowledge, the KL term effectively “pulls” the model back toward its original distribution on unaffected inputs. This ensures the model retains its competence on benign inputs while unlearning harmful content. Without this constraint, aggressive modifications may compromise overall utility. By balancing GA-driven forgetting with KL-based retention, we hope to achieve a controlled unlearning process that maintains fluency and accuracy.
 
 Our framework optimizes two objectives concurrently:
 
@@ -150,7 +151,6 @@ Additionally, the \textit{Task Aggregate Score} is computed as the harmonic mean
 Finally, the \textit{Final Score}, calculated as the arithmetic mean of the MMLU, MIA, and Task Aggregate Scores, was 0.351. Based on this composite metric, our submission is ranked 15th out of 24 entries. These results collectively underscore a critical trade-off in our dual-objective approach: while our method might have excelled in eliminating targeted, potentially harmful content, it also results in a notable degradation of overall task performance.
 
 \section{Conclusion}
-
 Our experiments faced several practical challenges that influenced both training and model performance. A key constraint was the selection of a 1B parameter model instead of a 7B variant due to computational limitations. While necessary for efficiency, this decision likely contributed to performance degradation, as smaller models struggle to balance knowledge retention and unlearning.  
 
 GPU limitations further restricted our approach. Running both teacher and student models concurrently led to high memory consumption, reducing batch sizes and limiting additional loss components like random answer loss. This required careful hyper-parameter tuning with minimal architectural modifications to maintain a feasible balance between unlearning and retention.   
@@ -161,14 +161,16 @@ Despite these challenges, our systematic adjustments provided valuable insights 
 
 \section*{Limitations}
 
+Our approach is constrained by computational resources, using a 1B-parameter model instead of a 7B variant, likely impacting performance. Gradient ascent and KL divergence, while effective, may not optimally balance forgetting and retention compared to advanced unlearning techniques. GPU memory limitations restricted batch sizes and architectural modifications, reducing flexibility. Additionally, limited hyper-parameter tuning may have hindered performance optimization. Our evaluation also did not assess potential adversarial vulnerabilities post-unlearning. Future work should explore more scalable methods and robustness analysis to enhance unlearning effectiveness while maintaining model utility.  
+
+
 \section*{Acknowledgments}
-We thank \textit{SemEval} organisers for dataset curation and anonymous reviewers for feedback. Compute resources provided by Stanford NLP Group.
+We thank \textit{SemEval 2024 Task 4} organisers for dataset curation and the evaluation.
 
 We thank our instructor \textit{Çağrı Çöltekin} from the course \textit{Challenges in Computational Linguistics} for encouraging and helping us on the completion of the task.
 
 
 \bibliography{anthology, custom}
-
 
 
 \appendix
