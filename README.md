@@ -23,14 +23,6 @@ By continuously performing gradient ascent on this data, we can gradually reduce
 The Kullback-Leibler Divergence score: quantifies how much one probability distribution differs from another probability distribution.
 -  used to measure the prediction differences between the current model and the pre-trained model on normal samples, thereby ensuring that the model does not deviate from learning normal samples during the "unlearning" process.
   
-### 3. Perform Gradient Descent on retaining set or RAG（Retrieval Augmented Generation)
-For Gradient Descent:
-- Train the model again with the retain set using Gradient Descent and minimize the loss in order to predict the correctly retained answer.
-  
-For RAG (Retrieval Augmented Generation):
-- It is an AI framework for improving the quality of LLM-generated responses by grounding the model on external sources of knowledge to supplement the LLM's internal representation of information.
-- The model retrieves the retained data set when the input is related to it.
-
 
 ### Instructions
 
